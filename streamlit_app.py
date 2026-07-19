@@ -128,8 +128,8 @@ st.markdown(
         font-family: 'Anton', sans-serif;
         font-size: clamp(54px, 16vw, 74px);
         font-variant-numeric: tabular-nums;
-        color: var(--bone); line-height: 1.04; text-align: center;
-        margin: 0; text-shadow: 0 3px 14px rgba(0,0,0,.55);
+        color: var(--bone); line-height: 1.0; text-align: center;
+        margin: 0 0 6px; text-shadow: 0 3px 14px rgba(0,0,0,.55);
         animation: pop .22s ease;
       }
       @keyframes pop {
