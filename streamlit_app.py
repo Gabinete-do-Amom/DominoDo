@@ -8,7 +8,8 @@
 # - Cabe inteiro numa tela de iPhone/Pixel (~390–412px de largura)
 # - Times LADO A LADO (colunas não colapsam no mobile)
 # - Histórico único da partida em expander recolhido
-# - ➖5 vermelho via classe st-key (estável, sem hack de :last-child)
+# - ➖5 vermelho via classe st-key (melhor que :last-child, mas a Streamlit
+#   não garante o prefixo entre versões — conferir em upgrades)
 # ===============================================
 
 from datetime import datetime
@@ -160,7 +161,7 @@ painel_time("B", right)
 st.button("🧹 Zerar placares", key="zerar", on_click=zerar)
 
 with st.expander(f"📜 Histórico da partida ({len(st.session_state.hist_all)})",
-                 expanded=False):
+                 expanded=False, key="hist_expander"):
     if not st.session_state.hist_all:
         st.caption("Sem ações registradas ainda.")
     else:
