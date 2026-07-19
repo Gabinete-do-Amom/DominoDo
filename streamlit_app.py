@@ -64,8 +64,8 @@ st.markdown(
       }
 
       /* Botões: alvo de dedo (≥44px) mas compactos */
-      .stButton > button {
-        width: 100%;
+      .stButton, .stButton > button {
+        width: 100% !important;
         min-height: 46px !important;
         padding: 4px 6px !important;
         font-size: 18px !important;
