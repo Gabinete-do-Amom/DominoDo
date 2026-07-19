@@ -13,9 +13,9 @@
 # não garante o prefixo entre versões — conferir em upgrades).
 # ===============================================
 
+import html
 from datetime import datetime
 
-import pandas as pd
 import streamlit as st
 
 st.set_page_config(page_title="Placar Do Dominó", layout="centered",
@@ -62,6 +62,7 @@ st.markdown(
       div[data-testid="stMainBlockContainer"], section.main .block-container {
         padding: 0.65rem 0.6rem 0.85rem !important;
         max-width: 520px !important;
+        margin: 0 auto !important;
       }
       div[data-testid="stVerticalBlock"] {gap: 0.5rem !important;}
 
@@ -120,9 +121,47 @@ st.markdown(
 
       .titulo {
         font-family: 'Archivo', sans-serif; font-weight: 700;
-        font-size: 12px; line-height: 1.5; letter-spacing: .30em;
-        text-transform: uppercase; color: var(--bone-dim);
-        text-align: center; margin: 2px 0 8px; display: block;
+        font-size: 17px; line-height: 1.5; letter-spacing: .26em;
+        text-transform: uppercase; color: var(--bone);
+        text-align: center; margin: 6px 0 16px; display: block;
+        text-shadow: 0 2px 10px rgba(0,0,0,.4);
+      }
+
+      /* histórico como extrato, não tabela crua */
+      .hlist {
+        max-height: 260px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 3px;
+        padding: 2px 2px 6px;
+      }
+      .hrow {
+        display: flex; align-items: center; gap: 10px;
+        padding: 7px 10px; border-radius: 9px;
+        background: rgba(255,255,255,.025);
+        font-family: 'Archivo', sans-serif; font-size: 13px;
+      }
+      .hrow .hora {
+        color: var(--bone-dim); font-size: 11.5px;
+        font-variant-numeric: tabular-nums;
+      }
+      .hrow .htime {
+        flex: 1; color: var(--bone); font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .hrow .hdelta {
+        font-weight: 700; font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        padding: 2px 9px; border-radius: 999px;
+      }
+      .hdelta.pos {background: rgba(233,228,214,.10); color: var(--bone);}
+      .hdelta.neg {background: rgba(194,35,51,.20); color: #ff8a94;}
+      .hrow .htotal {
+        font-family: 'Anton', sans-serif; font-size: 15px;
+        color: var(--bone); min-width: 2.2ch; text-align: right;
+      }
+      .hrow .htotal::before {
+        content: '→'; font-family: 'Archivo', sans-serif;
+        font-weight: 500; color: var(--bone-dim);
+        margin-right: 5px; font-size: 12px;
       }
 
       .placar {
@@ -281,8 +320,17 @@ with st.expander(f"Histórico da partida ({len(st.session_state.hist_all)})",
     if not st.session_state.hist_all:
         st.caption("Sem ações registradas ainda.")
     else:
-        df_all = pd.DataFrame(st.session_state.hist_all)
-        cols = [c for c in ("timestamp", "time", "delta", "total_resultante")
-                if c in df_all.columns]
-        st.dataframe(df_all[cols], hide_index=True,
-                     height=min(300, 60 + 35 * len(df_all)))
+        linhas = []
+        for r in reversed(st.session_state.hist_all):
+            sinal = "neg" if str(r["delta"]).startswith("-") else "pos"
+            hora = r["timestamp"][11:19]
+            linhas.append(
+                "<div class='hrow'>"
+                f"<span class='hora'>{hora}</span>"
+                f"<span class='htime'>{html.escape(str(r['time']))}</span>"
+                f"<span class='hdelta {sinal}'>{r['delta']}</span>"
+                f"<span class='htotal'>{r['total_resultante']}</span>"
+                "</div>"
+            )
+        st.markdown(f"<div class='hlist'>{''.join(linhas)}</div>",
+                    unsafe_allow_html=True)
