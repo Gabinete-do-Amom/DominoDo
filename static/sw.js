@@ -1,6 +1,6 @@
 // Service worker do Placar do Dominó — app shell offline-first.
 // Bump CACHE a cada mudança de assets pra invalidar a versão antiga.
-const CACHE = 'domino-v2';
+const CACHE = 'domino-v3';
 const ASSETS = [
   './',
   'index.html',
