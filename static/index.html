@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0e11">
+<meta name="description" content="Placar de dominó em duplas — funciona offline, o placar sobrevive a refresh.">
+<title>Placar do Dominó</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+  @font-face {
+    font-family: 'Anton';
+    src: url('fonts/anton-latin.woff2') format('woff2');
+    font-weight: 400; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Archivo';
+    src: url('fonts/archivo-latin.woff2') format('woff2');
+    font-weight: 100 900; font-display: swap;
+  }
+
+  :root {
+    --bg: #0c0e11;
+    --tile: #171a20;
+    --edge: #262c38;
+    --bone: #e9e4d6;
+    --bone-dim: #98938a;
+    --red: #c22333;
+  }
+
+  * {box-sizing: border-box; -webkit-tap-highlight-color: transparent;}
+  html, body {margin: 0; padding: 0;}
+
+  body {
+    min-height: 100dvh;
+    background:
+      radial-gradient(circle at 12px 12px,
+        rgba(233,228,214,.022) 1.2px, transparent 1.7px),
+      radial-gradient(120% 90% at 50% 0%, #13161c 0%, var(--bg) 60%);
+    background-size: 26px 26px, auto;
+    background-attachment: fixed;
+    color: var(--bone);
+    font-family: 'Archivo', system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: max(10px, env(safe-area-inset-top)) 10px
+             max(14px, env(safe-area-inset-bottom));
+  }
+
+  .shell {width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 8px;}
+
+  h1.titulo {
+    font-size: 17px; font-weight: 700; line-height: 1.5;
+    letter-spacing: .26em; text-transform: uppercase;
+    color: var(--bone); text-align: center;
+    margin: 6px 0 10px; text-shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+
+  /* ── a pedra ── */
+  .pedra {
+    position: relative;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 9px;
+    background: linear-gradient(180deg, #1a1e26 0%, var(--tile) 100%);
+    border: 1px solid var(--edge);
+    border-radius: 18px;
+    padding: 14px 12px 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05),
+                0 10px 28px rgba(0,0,0,.45);
+  }
+  .pedra::before {
+    content: ''; position: absolute; left: 50%; top: 12%; bottom: 12%;
+    width: 1px;
+    background: linear-gradient(180deg, transparent,
+      var(--edge) 22%, var(--edge) 78%, transparent);
+  }
+  .pedra::after {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    width: 7px; height: 7px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    background: var(--edge); border-radius: 1px;
+  }
+  .metade {position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0;}
+  .metade[data-team="A"]::before {
+    content: ''; position: absolute; top: -8px; left: -4px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(233,228,214,.30);
+  }
+  .metade[data-team="B"]::before {
+    content: ''; position: absolute; top: -8px; right: -4px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(233,228,214,.30);
+    box-shadow: -9px 0 0 rgba(233,228,214,.30);
+  }
+
+  input.nome {
+    width: 100%; border: 0; outline: 0;
+    background: #10141a; border-radius: 10px;
+    padding: 8px 6px; text-align: center;
+    font-family: 'Archivo', sans-serif; font-weight: 600;
+    font-size: 14px; color: var(--bone-dim);
+  }
+  input.nome:focus {box-shadow: 0 0 0 1px var(--edge); color: var(--bone);}
+
+  .placar {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(54px, 16vw, 74px);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.0; text-align: center;
+    margin: 0 0 2px; text-shadow: 0 3px 14px rgba(0,0,0,.55);
+  }
+  .placar.pop {animation: pop .22s ease;}
+  @keyframes pop {
+    from {transform: scale(.93); opacity: .55;}
+    to   {transform: scale(1);   opacity: 1;}
+  }
+
+  .grid {display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+
+  button {
+    font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 17px;
+    color: var(--bone); cursor: pointer;
+    min-height: 46px; padding: 4px 6px;
+    background: #1d232d; border: 1px solid var(--edge); border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 2px 6px rgba(0,0,0,.35);
+    transition: transform .08s ease, background .15s ease;
+    user-select: none; touch-action: manipulation;
+  }
+  button:active {transform: scale(.96); background: #242b37;}
+
+  button.menos {
+    background: linear-gradient(180deg, #c22333, #9d1424);
+    border-color: rgba(255,120,130,.25);
+    color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  }
+  button.menos:active {background: linear-gradient(180deg, #b01f2e, #8d1220);}
+
+  button.zerar {
+    background: transparent; border: 1px dashed var(--edge);
+    color: var(--bone-dim); font-weight: 500; font-size: 14px;
+    min-height: 40px; box-shadow: none;
+  }
+  button.zerar.armado {
+    border-color: rgba(255,120,130,.45); color: #ff8a94;
+  }
+
+  details.historico {
+    border: 1px solid var(--edge); border-radius: 12px;
+    background: #12151b; overflow: hidden;
+  }
+  details.historico summary {
+    list-style: none; cursor: pointer;
+    padding: 9px 14px; font-size: 14px; color: var(--bone-dim);
+    display: flex; align-items: center; gap: 8px;
+  }
+  details.historico summary::-webkit-details-marker {display: none;}
+  details.historico summary::before {
+    content: ''; width: 6px; height: 6px;
+    border-right: 1.5px solid var(--bone-dim);
+    border-bottom: 1.5px solid var(--bone-dim);
+    transform: rotate(-45deg); transition: transform .15s ease;
+    flex: 0 0 auto;
+  }
+  details.historico[open] summary::before {transform: rotate(45deg);}
+
+  .hlist {
+    max-height: 260px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 2px 8px 10px;
+  }
+  .hvazio {color: var(--bone-dim); font-size: 13px; padding: 0 6px 10px;}
+  .hrow {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 9px;
+    background: rgba(255,255,255,.025); font-size: 13px;
+  }
+  .hrow .hora {color: var(--bone-dim); font-size: 11.5px; font-variant-numeric: tabular-nums;}
+  .hrow .htime {
+    flex: 1; color: var(--bone); font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hrow .hdelta {
+    font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums;
+    padding: 2px 9px; border-radius: 999px;
+  }
+  .hdelta.pos {background: rgba(233,228,214,.10); color: var(--bone);}
+  .hdelta.neg {background: rgba(194,35,51,.20); color: #ff8a94;}
+  .hrow .htotal {
+    font-family: 'Anton', sans-serif; font-size: 15px;
+    min-width: 2.2ch; text-align: right;
+  }
+  .hrow .htotal::before {
+    content: '→'; font-family: 'Archivo', sans-serif; font-weight: 500;
+    color: var(--bone-dim); margin-right: 5px; font-size: 12px;
+  }
+
+  .snack {
+    position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom));
+    transform: translate(-50%, 20px);
+    background: #1d232d; border: 1px solid var(--edge); border-radius: 12px;
+    color: var(--bone); font-size: 13.5px; padding: 10px 16px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5); max-width: 90vw; text-align: center;
+  }
+  .snack.on {opacity: 1; transform: translate(-50%, 0);}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1 class="titulo">Placar do Dominó</h1>
+
+  <main class="pedra">
+    <section class="metade" data-team="A">
+      <input class="nome" id="nome-A" maxlength="18" autocomplete="off"
+             enterkeyhint="done" aria-label="Nome do Time A">
+      <div class="placar" id="placar-A" aria-live="polite">0</div>
+      <div class="grid">
+        <button data-team="A" data-delta="5">+5</button>
+        <button data-team="A" data-delta="10">+10</button>
+        <button data-team="A" data-delta="15">+15</button>
+        <button data-team="A" data-delta="20">+20</button>
+      </div>
+      <button class="menos" data-team="A" data-delta="-5">−5</button>
+    </section>
+
+    <section class="metade" data-team="B">
+      <input class="nome" id="nome-B" maxlength="18" autocomplete="off"
+             enterkeyhint="done" aria-label="Nome do Time B">
+      <div class="placar" id="placar-B" aria-live="polite">0</div>
+      <div class="grid">
+        <button data-team="B" data-delta="5">+5</button>
+        <button data-team="B" data-delta="10">+10</button>
+        <button data-team="B" data-delta="15">+15</button>
+        <button data-team="B" data-delta="20">+20</button>
+      </div>
+      <button class="menos" data-team="B" data-delta="-5">−5</button>
+    </section>
+  </main>
+
+  <button class="zerar" id="zerar">Zerar placares</button>
+
+  <details class="historico" id="histBox">
+    <summary>Histórico da partida (<span id="histCount">0</span>)</summary>
+    <div class="hlist" id="hlist"></div>
+  </details>
+</div>
+
+<div class="snack" id="snack" role="status"></div>
+
+<script>
+(() => {
+  'use strict';
+  const KEY = 'domino-placar-v1';
+  const $ = id => document.getElementById(id);
+
+  const fresh = () => ({
+    names: {A: 'Time A', B: 'Time B'},
+    totais: {A: 0, B: 0},
+    hist: [],  // {ts, team, nome, delta, total}
+  });
+
+  let st;
+  try {
+    st = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY)) || {});
+  } catch { st = fresh(); }
+
+  const save = () => localStorage.setItem(KEY, JSON.stringify(st));
+  const esc = s => String(s).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const hora = ts => new Date(ts).toTimeString().slice(0, 8);
+
+  let snackTimer;
+  function snack(msg) {
+    const el = $('snack');
+    el.textContent = msg;
+    el.classList.add('on');
+    clearTimeout(snackTimer);
+    snackTimer = setTimeout(() => el.classList.remove('on'), 2200);
+  }
+
+  function renderPlacar(team, pop) {
+    const el = $('placar-' + team);
+    el.textContent = st.totais[team];
+    if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  }
+
+  function renderHist() {
+    $('histCount').textContent = st.hist.length;
+    const box = $('hlist');
+    if (!st.hist.length) {
+      box.innerHTML = '<div class="hvazio">Sem ações registradas ainda.</div>';
+      return;
+    }
+    box.innerHTML = st.hist.slice().reverse().map(r => {
+      const neg = r.delta < 0;
+      const delta = (neg ? '' : '+') + r.delta;
+      return '<div class="hrow">'
+        + '<span class="hora">' + hora(r.ts) + '</span>'
+        + '<span class="htime">' + esc(r.nome) + '</span>'
+        + '<span class="hdelta ' + (neg ? 'neg' : 'pos') + '">' + delta + '</span>'
+        + '<span class="htotal">' + r.total + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function pontuar(team, delta) {
+    if (st.totais[team] + delta < 0) {
+      snack('O placar não pode ficar negativo.');
+      return;
+    }
+    st.totais[team] += delta;
+    st.hist.push({ts: Date.now(), team, nome: st.names[team],
+                  delta, total: st.totais[team]});
+    save();
+    renderPlacar(team, true);
+    renderHist();
+  }
+
+  // botões de pontuação
+  document.querySelectorAll('button[data-delta]').forEach(b => {
+    b.addEventListener('click', () =>
+      pontuar(b.dataset.team, parseInt(b.dataset.delta, 10)));
+  });
+
+  // zerar em 2 toques (o 1º arma por 2.5s)
+  let armado = null;
+  $('zerar').addEventListener('click', () => {
+    const b = $('zerar');
+    if (armado) {
+      clearTimeout(armado); armado = null;
+      st.totais = {A: 0, B: 0}; st.hist = [];
+      save();
+      renderPlacar('A', true); renderPlacar('B', true); renderHist();
+      b.textContent = 'Zerar placares'; b.classList.remove('armado');
+    } else {
+      b.textContent = 'Confirmar zerar?'; b.classList.add('armado');
+      armado = setTimeout(() => {
+        armado = null;
+        b.textContent = 'Zerar placares'; b.classList.remove('armado');
+      }, 2500);
+    }
+  });
+
+  // nomes editáveis
+  ['A', 'B'].forEach(team => {
+    const inp = $('nome-' + team);
+    inp.value = st.names[team];
+    inp.addEventListener('input', () => {
+      st.names[team] = inp.value.trim() || ('Time ' + team);
+      save();
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+  });
+
+  renderPlacar('A', false);
+  renderPlacar('B', false);
+  renderHist();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+})();
+</script>
+</body>
+</html>
