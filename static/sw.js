@@ -1,6 +1,6 @@
 // Service worker do Placar do Dominó — app shell offline-first.
 // Bump CACHE a cada mudança de assets pra invalidar a versão antiga.
-const CACHE = 'domino-v1';
+const CACHE = 'domino-v2';
 const ASSETS = [
   './',
   'index.html',
@@ -29,6 +29,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  // cross-origin (ex.: beacon de analytics do CF) fica com o browser
+  if (new URL(req.url).origin !== location.origin) return;
 
   // navegação: rede primeiro (pega updates), cache como fallback offline
   if (req.mode === 'navigate') {
