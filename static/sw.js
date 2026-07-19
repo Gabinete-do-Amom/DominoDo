@@ -1,15 +1,15 @@
 // Service worker do Placar do Dominó — app shell offline-first.
 // Bump CACHE a cada mudança de assets pra invalidar a versão antiga.
-const CACHE = 'domino-v3';
+const CACHE = 'domino-v4';
 const ASSETS = [
   './',
   'index.html',
   'manifest.webmanifest',
   'fonts/anton-latin.woff2',
   'fonts/archivo-latin.woff2',
-  'icons/icon-192.png',
-  'icons/icon-512.png',
-  'icons/icon-180.png',
+  'icons/icon-192.v2.png',
+  'icons/icon-512.v2.png',
+  'icons/icon-180.v2.png',
 ];
 
 self.addEventListener('install', e => {
