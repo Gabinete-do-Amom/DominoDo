@@ -64,7 +64,12 @@ st.markdown(
       }
 
       /* Botões: alvo de dedo (≥44px) mas compactos */
-      .stButton, .stButton > button {
+      /* wrappers precisam esticar, senão o botão fica 100% de um pai
+         content-sized */
+      div[data-testid="stElementContainer"], .stButton {
+        width: 100% !important;
+      }
+      .stButton > button {
         width: 100% !important;
         min-height: 46px !important;
         padding: 4px 6px !important;
