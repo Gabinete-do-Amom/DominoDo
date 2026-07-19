@@ -120,8 +120,9 @@ st.markdown(
 
       .titulo {
         font-family: 'Archivo', sans-serif; font-weight: 700;
-        font-size: 12px; letter-spacing: .30em; text-transform: uppercase;
-        color: var(--bone-dim); text-align: center; margin: 0;
+        font-size: 12px; line-height: 1.5; letter-spacing: .30em;
+        text-transform: uppercase; color: var(--bone-dim);
+        text-align: center; margin: 2px 0 8px; display: block;
       }
 
       .placar {
